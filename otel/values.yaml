@@ -98,12 +98,12 @@ config:
       endpoint: "tempo.default.svc.cluster.local:4317" 
       tls: 
         insecure: true 
-    otlphttp:  
-      endpoint: http://mimir-nginx.mimir.svc.cluster.local:8080/otlp/v1/metrics" 
-      # remote_write_queue:
-      #   enabled: True
-      #   queue_size: 100000
-      #   num_consumers: 5
+    prometheusremotewrite:  
+      endpoint: "http://mimir-nginx.mimir.svc.cluster.local:80/api/v1/push"
+      remote_write_queue:
+        enabled: True
+        queue_size: 100000
+        num_consumers: 5
     debug:
       verbosity: detailed 
   service: 
@@ -114,7 +114,7 @@ config:
       traces: 
         exporters: [debug, otlp]
       metrics:
-        exporters: [debug, otlphttp]
+        exporters: [debug, prometheusremotewrite]
       # logs: 
       #   receivers: [otlp]
       #   processors: [..., memory_limiter, batch]
