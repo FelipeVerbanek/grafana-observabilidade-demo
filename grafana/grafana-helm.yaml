@@ -1,0 +1,87 @@
+#  helm upgrade -f grafana-helm.yaml --install grafana grafana/grafana
+env:
+  GF_AUTH_ANONYMOUS_ENABLED: true
+  GF_AUTH_ANONYMOUS_ORG_ROLE: 'Admin'
+  GF_AUTH_DISABLE_LOGIN_FORM: false
+  GF_INSTALL_PLUGINS: https://storage.googleapis.com/integration-artifacts/grafana-exploretraces-app/grafana-exploretraces-app-latest.zip;grafana-traces-app
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+
+    datasources:
+      - name: Mimir
+        type: prometheus
+        uid: mimir
+        url: http://mimir-nginx.mimir.svc.cluster.local:80/prometheus
+        jsonData:
+            httpMethod: GET
+        version: 1     
+      - name: Mimir Alertmanager
+        uid: alertmanager
+        type: alertmanager
+        access: proxy
+        url: http://mimir-nginx.mimir.svc.cluster.local:80/prometheus
+        version: 1
+        editable: true
+        jsonData:
+          httpHeaderName1: "X-Scope-OrgID"
+          implementation: "cortex"
+        secureJsonData:
+          httpHeaderValue1: "demo"            
+      - name: Tempo
+        type: tempo
+        access: proxy
+        orgId: 1
+        url: http://tempo:3100
+        basicAuth: false
+        isDefault: true
+        version: 1
+        editable: false
+        apiVersion: 1
+        uid: tempo
+        jsonData:
+          tracesToLogsV2:
+            # Field with an internal link pointing to a logs data source in Grafana.
+            # datasourceUid value must match the uid value of the logs data source.
+            datasourceUid: 'Loki'
+            # spanStartTimeShift: '-1h'
+            # spanEndTimeShift: '1h'
+            tags: [{ key: 'service.name', value: 'job' }]
+            filterByTraceID: true
+            filterBySpanID: true
+          # tracesToMetrics:
+          #   datasourceUid: 'prometheus'
+          #   spanStartTimeShift: '1h'
+          #   spanEndTimeShift: '-1h'
+          #   tags: [{ key: 'service.name', value: 'service' }, { key: 'job' }]
+          #   queries:
+          #     - name: 'Sample query'
+          #       query: 'sum(rate(traces_spanmetrics_latency_bucket{$$__tags}[5m]))'
+          serviceMap:
+            datasourceUid: 'mimir'
+          nodeGraph:
+            enabled: true
+          # search:
+          #   hide: false
+          # traceQuery:
+          #   timeShiftEnabled: true
+          #   spanStartTimeShift: '1h'
+          #   spanEndTimeShift: '-1h'
+          # spanBar:
+          #   type: 'Tag'
+          #   tag: 'http.path'
+          # streamingEnabled:
+          #   search: true
+   
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki-gateway
+        jsonData:
+          timeout: 60
+          maxLines: 1000
+          derivedFields:
+            - matcherRegex: "trace_id\":\"(\\w+)"
+              name: "trace_id"
+              datasourceUid: "tempo"
+              url: "$${__value.raw}"
