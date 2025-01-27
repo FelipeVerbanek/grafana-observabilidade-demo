@@ -10,30 +10,39 @@ Este guia fornece instruções para instalar componentes de observabilidade em u
 
 ## Passo a Passo de Instalação
 
-##
-- Comando: helm repo add grafana https://grafana.github.io/helm-charts
-
+```bash
+helm repo add grafana https://grafana.github.io/helm-charts
+```
 ## Criação do namespace mimir
-- Comando: kubectl apply -f namespace/mimir.yaml
 
+```bash
+kubectl apply -f namespace/mimir.yaml
+```
 ### 1. Instalação do Grafana
-- Comando: helm upgrade -f grafana/grafana-helm.yaml --install grafana grafana/grafana
-
+```bash
+helm upgrade -f grafana/grafana-helm.yaml --install grafana grafana/grafana
+```
 ### 2. Instalação do Tempo
-- Comando: helm upgrade --install tempo grafana/tempo -f tempo/values.yaml
-
+```bash
+helm upgrade --install tempo grafana/tempo -f tempo/values.yaml
+```
 ### 3. Instalação do Ingress para Tempo e Grafana
-- Comando: kubectl apply -f grafana/ingress.yaml
-
+```bash
+kubectl apply -f grafana/ingress.yaml
+```
 ### 4. Instalação do Loki
-- Comando: helm upgrade --install --values loki/values.yaml loki grafana/loki
-
+```bash
+helm upgrade --install --values loki/values.yaml loki grafana/loki
+```
 ### 5. Instalação do FluentBit
-- Comando: helm upgrade --install fluent-bit fluent/fluent-bit -f fluentbit/values.yaml
-
+```bash
+helm upgrade --install fluent-bit fluent/fluent-bit -f fluentbit/values.yaml
+```
 ### 6. Instalação do OpenTelemetry Collector
-- Comando: helm upgrade --install my-opentelemetry-collector open-telemetry/opentelemetry-collector --set mode=daemonset --set image.repository="otel/opentelemetry-collector-k8s" --set command.name="otelcol-k8s" -f otel/values.yaml
-
+```bash
+helm upgrade --install my-opentelemetry-collector open-telemetry/opentelemetry-collector --set mode=daemonset --set image.repository="otel/opentelemetry-collector-k8s" --set command.name="otelcol-k8s" -f otel/values.yaml
+```
 ### 7. Instalação do Mimir
-- Comando: helm upgrade --install mimir grafana/mimir-distributed -n mimir -f mimir/values.yaml
-
+```bash
+helm upgrade --install mimir grafana/mimir-distributed -n mimir -f mimir/values.yaml
+```
